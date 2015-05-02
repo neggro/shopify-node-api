@@ -1,32 +1,34 @@
-var should = require('chai').should(),
-    expect = require('chai').expect,
+var chai = require('chai'),
+    should = chai.should(),
+    expect = chai.expect,
     nock = require('nock'),
-    shopifyAPI = require('../lib/shopify.js');
+    ShopifyAPI = require('../lib/shopify.js');
 
-describe('Constructor Function: #shopifyAPI', function(){
+describe('Constructor Function: #ShopifyAPI', function () {
 
-    it('throws error if no config object is passed in', function(){
-        var msg = "ShopifyAPI module expects a config object\nPlease see documentation at: https://github.com/sinechris/shopify-node-api\n";
-        expect(function(){
-            var Shopify = new shopifyAPI();
+    it('throws error if no config object is passed in', function () {
+        var msg = 'ShopifyAPI module expects a config object\nPlease see ' +
+            'documentation at: https://github.com/sinechris/shopify-node-api\n';
+        expect(function () {
+            var Shopify = new ShopifyAPI();
         }).to.throw(msg);
     });
 
-    it('returns instanceof shopifyAPI with "new" keyword', function(){
-        var Shopify = new shopifyAPI({});
-        expect(Shopify).to.be.a.instanceof(shopifyAPI);
+    it('returns instanceof ShopifyAPI with "new" keyword', function () {
+        var Shopify = new ShopifyAPI({});
+        expect(Shopify).to.be.a.instanceof(ShopifyAPI);
     });
 
-    it('returns instanceof shopifyAPI without "new" keyword', function(){
-        var Shopify = shopifyAPI({});
-        expect(Shopify).to.be.a.instanceof(shopifyAPI);
+    it('returns instanceof ShopifyAPI without "new" keyword', function () {
+        var Shopify = ShopifyAPI({});
+        expect(Shopify).to.be.a.instanceof(ShopifyAPI);
     });
-
 });
 
-describe('#buildAuthURL', function(){
 
-    var Shopify = new shopifyAPI({
+describe('#buildAuthURL', function () {
+
+    var Shopify = new ShopifyAPI({
                 shop: 'MYSHOP',
                 shopify_api_key: 'abc123',
                 shopify_shared_secret: 'asdf1234',
@@ -34,8 +36,7 @@ describe('#buildAuthURL', function(){
                 redirect_uri: 'http://localhost:3000/finish_auth'
             });
 
-
-    it('builds correct string', function(){
+    it('builds correct string', function () {
         var auth_url = Shopify.buildAuthURL(),
             correct_auth_url = 'https://MYSHOP.myshopify.com/admin/oauth/authorize?client_id=abc123&scope=write_products&redirect_uri=http://localhost:3000/finish_auth';
         auth_url.should.equal(correct_auth_url);
@@ -43,14 +44,16 @@ describe('#buildAuthURL', function(){
 
 });
 
-describe('#set_access_token', function(){
-    var Shopify = new shopifyAPI({});
 
-    it('should not have access_token property initially', function(){
+describe('#set_access_token', function () {
+
+    var Shopify = new ShopifyAPI({});
+
+    it('should not have access_token property initially', function () {
         Shopify.config.should.not.have.property('access_token');
     });
 
-    it('should add correct access token to config object', function(){
+    it('should add correct access token to config object', function () {
         Shopify.config.should.not.have.property('access_token');
         var fake_token = '123456789';
         Shopify.set_access_token(fake_token);
@@ -67,16 +70,17 @@ describe('#set_access_token', function(){
             .should
             .equal(fake_token);
     });
-
 });
 
-describe('#is_valid_signature', function(){
-    it('should return correct signature', function(){
+
+describe('#is_valid_signature', function () {
+
+    it('should return correct signature', function () {
 
         // Values used below were pre-calculated and not part
         // of an actual shop.
 
-        var Shopify = shopifyAPI({}),
+        var Shopify = ShopifyAPI({}),
             params = {
                 code: 'di389so32hwh28923823dh3289329hdd',
                 shop: 'testy-tester.myshopify.com',
@@ -88,13 +92,15 @@ describe('#is_valid_signature', function(){
     });
 });
 
-describe('#exchange_temporary_token', function(){
-    it('should exchange a temporary token', function(done){
+
+describe('#exchange_temporary_token', function () {
+
+    it('should exchange a temporary token', function (done) {
 
         // Values used below were pre-calculated and not part
         // of an actual shop.
 
-        var Shopify = shopifyAPI({
+        var Shopify = ShopifyAPI({
                 shop: 'myshop',
                 shopify_api_key: 'abc123',
                 shopify_shared_secret: 'asdf1234',
@@ -104,34 +110,34 @@ describe('#exchange_temporary_token', function(){
                 code: 'di389so32hwh28923823dh3289329hdd',
                 timestamp: '1402539839',
                 signature: '679edfa2ebd05b2abcbb15b7fdc72934'
-            };
+            },
+            shopifyTokenFetch = nock('https://myshop.myshopify.com')
+                .post('/admin/oauth/access_token')
+                .reply(200, {
+                    "access_token": "abcd"
+                });
 
-        var shopifyTokenFetch = nock('https://myshop.myshopify.com')
-            .post('/admin/oauth/access_token')
-            .reply(200, {
-                "access_token": "abcd"
-            });
-
-        Shopify.exchange_temporary_token(params, function(err, res) {
-          if (err) {
-            return done(err);
-          }
-          shopifyTokenFetch.done();
-          done();
+        Shopify.exchange_temporary_token(params, function (err, res) {
+            if (err) {
+                return done(err);
+            }
+            shopifyTokenFetch.done();
+            done();
         });
     });
 });
 
-describe('#get', function(){
-   it('should return correct response', function(done){
+
+describe('#get', function () {
+
+    it('should return correct response', function (done) {
 
         var shopify_get = nock('https://myshop.myshopify.com')
-                            .get('/admin/products/count.json')
-                            .reply(200, {
-                                "count": 2
-                            });
-
-        var Shopify = shopifyAPI({
+            .get('/admin/products/count.json')
+            .reply(200, {
+                "count": 2
+            }),
+            Shopify = ShopifyAPI({
                 shop: 'myshop',
                 shopify_api_key: 'abc123',
                 shopify_shared_secret: 'asdf1234',
@@ -140,39 +146,39 @@ describe('#get', function(){
                 verbose: false
             });
 
-        Shopify.get('/admin/products/count.json', function(err, data, headers){
+        Shopify.get('/admin/products/count.json', function (err, data, headers) {
             expect(data).to.deep.equal({"count": 2});
             done();
         });
-
-   });
+    });
 });
 
-describe('#post', function(){
-    it('should return correct response', function(done){
+
+describe('#post', function () {
+
+    it('should return correct response', function (done) {
 
         var post_data = {
-              "product": {
+            "product": {
                 "title": "Burton Custom Freestlye 151",
                 "body_html": "<strong>Good snowboard!</strong>",
                 "vendor": "Burton",
                 "product_type": "Snowboard",
-                "variants": [
-                  {
+                "variants": [{
                     "option1": "First",
                     "price": "10.00",
                     "sku": 123
-                  },
-                  {
+                },
+                {
                     "option1": "Second",
                     "price": "20.00",
                     "sku": "123"
-                  }
-                ]
-              }
-            },
-            response = {
-              "product": {
+                }]
+            }
+        },
+
+        response = {
+            "product": {
                 "body_html": "<strong>Good snowboard!</strong>",
                 "created_at": "2014-05-23T14:18:12-04:00",
                 "handle": "burton-custom-freestlye-151",
@@ -185,8 +191,7 @@ describe('#post', function(){
                 "updated_at": "2014-05-23T14:18:12-04:00",
                 "vendor": "Burton",
                 "tags": "",
-                "variants": [
-                  {
+                "variants": [{
                     "barcode": null,
                     "compare_at_price": null,
                     "created_at": "2014-05-23T14:18:12-04:00",
@@ -208,8 +213,8 @@ describe('#post', function(){
                     "updated_at": "2014-05-23T14:18:12-04:00",
                     "inventory_quantity": 1,
                     "old_inventory_quantity": 1
-                  },
-                  {
+                },
+                {
                     "barcode": null,
                     "compare_at_price": null,
                     "created_at": "2014-05-23T14:18:12-04:00",
@@ -231,36 +236,31 @@ describe('#post', function(){
                     "updated_at": "2014-05-23T14:18:12-04:00",
                     "inventory_quantity": 1,
                     "old_inventory_quantity": 1
-                  }
-                ],
-                "options": [
-                  {
+                }],
+                "options": [{
                     "id": 1020890454,
                     "name": "Title",
                     "position": 1,
                     "product_id": 1071559674
-                  }
-                ],
-                "images": [
+                }],
+                "images": []
+            }
+        },
 
-                ]
-              }
-            };
+        shopify_get = nock('https://myshop.myshopify.com')
+            .post('/admin/products.json')
+            .reply(200, response),
 
-        var shopify_get = nock('https://myshop.myshopify.com')
-                            .post('/admin/products.json')
-                            .reply(200, response);
+        Shopify = ShopifyAPI({
+            shop: 'myshop',
+            shopify_api_key: 'abc123',
+            shopify_shared_secret: 'asdf1234',
+            shopify_scope: 'write_products',
+            redirect_uri: 'http://localhost:3000/finish_auth',
+            verbose: false
+        });
 
-        var Shopify = shopifyAPI({
-                shop: 'myshop',
-                shopify_api_key: 'abc123',
-                shopify_shared_secret: 'asdf1234',
-                shopify_scope: 'write_products',
-                redirect_uri: 'http://localhost:3000/finish_auth',
-                verbose: false
-            });
-
-        Shopify.post('/admin/products.json', post_data, function(err, data, headers){
+        Shopify.post('/admin/products.json', post_data, function (err, data, headers) {
             expect(data).to.deep.equal(response);
             done();
         });
@@ -268,17 +268,20 @@ describe('#post', function(){
     });
 });
 
-describe('#put', function(){
-    it('should return correct response', function(done){
+
+describe('#put', function () {
+
+    it('should return correct response', function (done) {
 
         var put_data = {
-              "product": {
+            "product": {
                 "id": 632910392,
                 "title": "New product title"
-              }
-            },
-            response = {
-              "product": {
+            }
+        },
+
+        response = {
+            "product": {
                 "body_html": "<p>It's the small iPod with one very big idea: Video. Now the world's most popular music player, available in 4GB and 8GB models, lets you enjoy TV shows, movies, video podcasts, and more. The larger, brighter display means amazing picture quality. In six eye-catching colors, iPod nano is stunning all around. And with models starting at just $149, little speaks volumes.</p>",
                 "created_at": "2014-05-23T14:17:55-04:00",
                 "handle": "ipod-nano",
@@ -291,8 +294,7 @@ describe('#put', function(){
                 "updated_at": "2014-05-23T14:18:15-04:00",
                 "vendor": "Apple",
                 "tags": "Emotive, Flash Memory, MP3, Music",
-                "variants": [
-                  {
+                "variants": [{
                     "barcode": "1234_pink",
                     "compare_at_price": null,
                     "created_at": "2014-05-23T14:17:55-04:00",
@@ -314,8 +316,8 @@ describe('#put', function(){
                     "updated_at": "2014-05-23T14:17:55-04:00",
                     "inventory_quantity": 10,
                     "old_inventory_quantity": 10
-                  },
-                  {
+                },
+                {
                     "barcode": "1234_red",
                     "compare_at_price": null,
                     "created_at": "2014-05-23T14:17:55-04:00",
@@ -337,8 +339,8 @@ describe('#put', function(){
                     "updated_at": "2014-05-23T14:17:55-04:00",
                     "inventory_quantity": 20,
                     "old_inventory_quantity": 20
-                  },
-                  {
+                },
+                {
                     "barcode": "1234_green",
                     "compare_at_price": null,
                     "created_at": "2014-05-23T14:17:55-04:00",
@@ -360,8 +362,8 @@ describe('#put', function(){
                     "updated_at": "2014-05-23T14:17:55-04:00",
                     "inventory_quantity": 30,
                     "old_inventory_quantity": 30
-                  },
-                  {
+                },
+                {
                     "barcode": "1234_black",
                     "compare_at_price": null,
                     "created_at": "2014-05-23T14:17:55-04:00",
@@ -383,74 +385,70 @@ describe('#put', function(){
                     "updated_at": "2014-05-23T14:17:55-04:00",
                     "inventory_quantity": 40,
                     "old_inventory_quantity": 40
-                  }
-                ],
-                "options": [
-                  {
+                }],
+                "options": [{
                     "id": 594680422,
                     "name": "Title",
                     "position": 1,
                     "product_id": 632910392
-                  }
-                ],
-                "images": [
-                  {
+                }],
+                "images": [{
                     "created_at": "2014-05-23T14:17:55-04:00",
                     "id": 850703190,
                     "position": 1,
                     "product_id": 632910392,
                     "updated_at": "2014-05-23T14:17:55-04:00",
                     "src": "http://cdn.shopify.com/s/files/1/0006/9093/3842/products/ipod-nano.png?v=1400869075"
-                  },
-                  {
+                },
+                {
                     "created_at": "2014-05-23T14:17:55-04:00",
                     "id": 562641783,
                     "position": 2,
                     "product_id": 632910392,
                     "updated_at": "2014-05-23T14:17:55-04:00",
                     "src": "http://cdn.shopify.com/s/files/1/0006/9093/3842/products/ipod-nano-2.png?v=1400869075"
-                  }
-                ],
+                }],
                 "image": {
-                  "created_at": "2014-05-23T14:17:55-04:00",
-                  "id": 850703190,
-                  "position": 1,
-                  "product_id": 632910392,
-                  "updated_at": "2014-05-23T14:17:55-04:00",
-                  "src": "http://cdn.shopify.com/s/files/1/0006/9093/3842/products/ipod-nano.png?v=1400869075"
+                    "created_at": "2014-05-23T14:17:55-04:00",
+                    "id": 850703190,
+                    "position": 1,
+                    "product_id": 632910392,
+                    "updated_at": "2014-05-23T14:17:55-04:00",
+                    "src": "http://cdn.shopify.com/s/files/1/0006/9093/3842/products/ipod-nano.png?v=1400869075"
                 }
-              }
-            };
+            }
+        },
 
-        var shopify_get = nock('https://myshop.myshopify.com')
-                            .put('/admin/products/12345.json')
-                            .reply(200, response);
+        shopify_get = nock('https://myshop.myshopify.com')
+            .put('/admin/products/12345.json')
+            .reply(200, response),
 
-        var Shopify = shopifyAPI({
-                shop: 'myshop',
-                shopify_api_key: 'abc123',
-                shopify_shared_secret: 'asdf1234',
-                shopify_scope: 'write_products',
-                redirect_uri: 'http://localhost:3000/finish_auth',
-                verbose: false
-            });
+        Shopify = ShopifyAPI({
+            shop: 'myshop',
+            shopify_api_key: 'abc123',
+            shopify_shared_secret: 'asdf1234',
+            shopify_scope: 'write_products',
+            redirect_uri: 'http://localhost:3000/finish_auth',
+            verbose: false
+        });
 
-        Shopify.put('/admin/products/12345.json', put_data, function(err, data, headers){
+        Shopify.put('/admin/products/12345.json', put_data, function (err, data, headers) {
             expect(data).to.deep.equal(response);
             done();
         });
-
     });
 });
 
-describe('#delete', function(){
-    it('should return correct response', function(done){
+
+describe('#delete', function () {
+
+    it('should return correct response', function (done) {
 
         var shopify_get = nock('https://myshop.myshopify.com')
-                            .delete('/admin/products/12345.json')
-                            .reply(200, {});
+            .delete('/admin/products/12345.json')
+            .reply(200, {}),
 
-        var Shopify = shopifyAPI({
+            Shopify = ShopifyAPI({
                 shop: 'myshop',
                 shopify_api_key: 'abc123',
                 shopify_shared_secret: 'asdf1234',
@@ -459,7 +457,7 @@ describe('#delete', function(){
                 verbose: false
             });
 
-        Shopify.delete('/admin/products/12345.json', function(err, data, headers){
+        Shopify.delete('/admin/products/12345.json', function (err, data, headers) {
             expect(data).to.deep.equal({});
             done();
         });
