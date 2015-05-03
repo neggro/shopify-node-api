@@ -146,9 +146,12 @@ describe('#get', function () {
                 verbose: false
             });
 
-        Shopify.get('/admin/products/count.json', function (err, data, headers) {
-            expect(data).to.deep.equal({"count": 2});
-            done();
+        Shopify.get({
+            endpoint: '/admin/products/count.json',
+            callback: function (err, data, headers) {
+                expect(data).to.deep.equal({"count": 2});
+                done();
+            }
         });
     });
 });
@@ -260,9 +263,13 @@ describe('#post', function () {
             verbose: false
         });
 
-        Shopify.post('/admin/products.json', post_data, function (err, data, headers) {
-            expect(data).to.deep.equal(response);
-            done();
+        Shopify.post({
+            endpoint: '/admin/products.json',
+            data: post_data,
+            callback: function (err, data, headers) {
+                expect(data).to.deep.equal(response);
+                done();
+            }
         });
 
     });
@@ -432,9 +439,13 @@ describe('#put', function () {
             verbose: false
         });
 
-        Shopify.put('/admin/products/12345.json', put_data, function (err, data, headers) {
-            expect(data).to.deep.equal(response);
-            done();
+        Shopify.put({
+            endpoint: '/admin/products/12345.json',
+            data: put_data,
+            callback: function (err, data, headers) {
+                expect(data).to.deep.equal(response);
+                done();
+            }
         });
     });
 });
@@ -457,9 +468,12 @@ describe('#delete', function () {
                 verbose: false
             });
 
-        Shopify.delete('/admin/products/12345.json', function (err, data, headers) {
-            expect(data).to.deep.equal({});
-            done();
+        Shopify.delete({
+            endpoint: '/admin/products/12345.json',
+            callback: function (err, data, headers) {
+                expect(data).to.deep.equal({});
+                done();
+            }
         });
 
     });
